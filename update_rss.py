@@ -74,7 +74,12 @@ def main():
         ET.SubElement(
             item,
             "title"
-        ).text = f"{video['channel']} - {video['title']}"
+        ).text = video["title"]
+
+        ET.SubElement(
+            item,
+            "author"
+        ).text = video["channel"]
 
         ET.SubElement(
             item,
