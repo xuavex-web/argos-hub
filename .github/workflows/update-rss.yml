@@ -22,11 +22,12 @@ jobs:
       - name: Update RSS
         run: |
           python update_rss.py
+          python update_podcasts.py
 
       - name: Commit RSS
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add argos_rss.xml
+          git add argos_rss.xml argos_podcasts.xml
           git commit -m "Update ARGOS RSS" || exit 0
           git push
