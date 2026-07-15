@@ -1,1 +1,12 @@
 https://feeds.ivoox.com/feed_fg_f138795_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f11691380_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f1691202_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f1261_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f1424550_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f11290553_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f12472648_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f1310666_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f14606_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f145904_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f12658757_filtro_1.xml
+https://feeds.ivoox.com/feed_fg_f12004432_filtro_1.xml
