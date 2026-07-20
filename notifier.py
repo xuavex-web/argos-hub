@@ -30,5 +30,8 @@ def send_notification(title, channel, link):
     try:
         with urllib.request.urlopen(req) as response:
             print(f"Notificación enviada ({response.status})")
+            return True
+
     except Exception as e:
         print(f"Error enviando notificación: {e}")
+        return False
