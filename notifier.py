@@ -8,7 +8,7 @@ def send_notification(title, channel, link):
 
     if not server or not topic:
         print("NTFY no configurado")
-        return
+        return False
 
     body = f"""📺 {channel}
 
