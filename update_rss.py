@@ -1,7 +1,5 @@
 import urllib.request
-import urllib.error
 import xml.etree.ElementTree as ET
-import traceback
 
 from state import load_state, save_state
 from notifier import send_notification
@@ -60,13 +58,12 @@ def main():
             elif ultimo != latest_link:
                 print(f"Nuevo vídeo: {channel_name}")
 
-                send_notification(
+                if send_notification(
                     latest_title,
                     channel_name,
                     latest_link
-                )
-
-                state["youtube"][channel_name] = latest_link
+                ):
+                    state["youtube"][channel_name] = latest_link
 
             # ---------- RSS (todos los vídeos) ----------
             for entry in entries:
@@ -83,8 +80,8 @@ def main():
                 })
                                                    
         except Exception as e:
-            print("Error leyendo:", feed_url, e)
-
+            print(f"Error leyendo {feed_url}: {e}")
+            continue
 
     videos.sort(
         key=lambda x: x["published"],
