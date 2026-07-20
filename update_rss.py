@@ -1,6 +1,10 @@
 import urllib.request
+import urllib.error
 import xml.etree.ElementTree as ET
-from datetime import datetime
+import traceback
+
+from state import load_state, save_state
+from notifier import send_notification
 
 INPUT = "feeds.txt"
 OUTPUT = "argos_rss.xml"
@@ -22,6 +26,11 @@ def get_channel_name(root):
 
 def main():
 
+    state = load_state()
+
+    if "youtube" not in state:
+        state["youtube"] = {}
+
     videos = []
 
     for feed_url in get_feed_urls():
@@ -31,7 +40,37 @@ def main():
 
             channel_name = get_channel_name(root)
 
-            for entry in root.findall(f"{ATOM}entry"):
+            entries = root.findall(f"{ATOM}entry")
+
+            if not entries:
+                continue
+
+            # ---------- Notificación (solo el vídeo más reciente) ----------
+            latest = entries[0]
+
+            latest_title = latest.find(f"{ATOM}title").text
+            latest_link = latest.find(f"{ATOM}link").attrib["href"]
+
+            ultimo = state["youtube"].get(channel_name)
+
+            if ultimo is None:
+                # Primera ejecución: solo guardar el último vídeo
+                state["youtube"][channel_name] = latest_link
+
+            elif ultimo != latest_link:
+                print(f"Nuevo vídeo: {channel_name}")
+
+                send_notification(
+                    latest_title,
+                    channel_name,
+                    latest_link
+                )
+
+                state["youtube"][channel_name] = latest_link
+
+            # ---------- RSS (todos los vídeos) ----------
+            for entry in entries:
+
                 title = entry.find(f"{ATOM}title").text
                 link = entry.find(f"{ATOM}link").attrib["href"]
                 published = entry.find(f"{ATOM}published").text
@@ -42,7 +81,7 @@ def main():
                     "published": published,
                     "channel": channel_name
                 })
-
+                                                   
         except Exception as e:
             print("Error leyendo:", feed_url, e)
 
@@ -90,7 +129,8 @@ def main():
             item,
             "pubDate"
         ).text = video["published"]
-
+        
+    save_state(state)
 
     tree = ET.ElementTree(rss)
 
