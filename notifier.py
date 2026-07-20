@@ -28,7 +28,7 @@ def send_notification(title, channel, link):
     req.add_header("Tags", "tv")
 
     try:
-        urllib.request.urlopen(req)
-        print("Notificación enviada")
+        with urllib.request.urlopen(req) as response:
+            print(f"Notificación enviada ({response.status})")
     except Exception as e:
-        print(e)
+        print(f"Error enviando notificación: {e}")
