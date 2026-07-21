@@ -26,7 +26,7 @@ jobs:
         run: |
          python update_rss.py
          python update_podcasts.py
-
+         python test_ntfy.py
       - name: Commit RSS
         run: |
           git config --global user.name "github-actions"
