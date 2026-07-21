@@ -55,7 +55,7 @@ def main():
                 # Primera ejecución: solo guardar el último vídeo
                 state["youtube"][channel_name] = latest_link
 
-            elif ultimo != latest_link:
+            elif True:
                 print(f"Nuevo vídeo: {channel_name}")
 
                 if send_notification(
