@@ -78,7 +78,7 @@ def main():
                 
                 guardado = []
 
-                for entry in entries[:10]:
+                for entry in entries[:20]:
                     link = entry.find(f"{ATOM}link").attrib["href"]
                     guardado.append(get_video_id(link))
 
@@ -103,20 +103,17 @@ def main():
                         link
                     ):
                    
-                        print("Notificación enviada")                    
+                        print("Notificación enviada")  
+
+                        # Lo marcamos inmediatamente como visto
+                        guardado.insert(0, video_id)
+
                     else:
                         print("Error enviando notificación")
-            # Actualizar historial de IDs
-            historial = []
-
-            for entry in entries[:20]:
-                link = entry.find(f"{ATOM}link").attrib["href"]
-                historial.append(get_video_id(link))
-
-            state["youtube"][channel_name] = historial
-            guardado = historial
-            
-
+                        
+            # Guardamos el historial actualizado (máximo 20 vídeos)
+            state["youtube"][channel_name] = guardado[:20]
+           
             # ---------- RSS (todos los vídeos) ----------
             for entry in entries:
 
