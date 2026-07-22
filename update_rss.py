@@ -64,14 +64,15 @@ def main():
 
             guardado = state["youtube"].get(channel_name)
 
-            # Compatibilidad con el formato antiguo
+            # Canal nuevo
             if guardado is None:
-                state["youtube"][channel_name] = [latest_id]
+                guardado = [latest_id]
+                state["youtube"][channel_name] = guardado
                 continue
-                
-            elif isinstance(guardado, str):
+            # Migración automática del formato antiguo    
+            if isinstance(guardado, str):
                 guardado = [get_video_id(guardado)]
-
+                state["youtube"][channel_name] = guardado
             if latest_id not in guardado:
                 print(f"Nuevo vídeo: {channel_name}")
 
@@ -80,7 +81,8 @@ def main():
                     channel_name,
                     latest_link
                 ):
-                    state["youtube"][channel_name] = [latest_id]
+                    guardado.insert(0, latest_id)
+                    state["youtube"][channel_name] = guardado[:10]
             # ---------- RSS (todos los vídeos) ----------
             for entry in entries:
 
