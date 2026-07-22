@@ -51,6 +51,7 @@ def main():
             channel_name = get_channel_name(root)
 
             entries = root.findall(f"{ATOM}entry")
+            print(channel_name, "videos encontrados:", len(entries))
 
             if not entries:
                 continue
@@ -106,7 +107,7 @@ def main():
             # Actualizar historial de IDs
             historial = []
 
-            for entry in entries[:10]:
+            for entry in entries[:20]:
                 link = entry.find(f"{ATOM}link").attrib["href"]
                 historial.append(get_video_id(link))
 
