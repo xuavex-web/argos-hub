@@ -58,10 +58,12 @@ def main():
 
             # ---------- Notificaciones ----------
             guardado = state["youtube"].get(channel_name)
+            print(f"{channel_name!r} -> {'ENCONTRADO' if guardado is not None else 'NO ENCONTRADO'}")
 
             # Canal nuevo
             if guardado is None:
                 historial = []
+                print(f"Canal nuevo: {channel_name!r}")
 
                 for entry in entries[:20]:
                     link = entry.find(f"{ATOM}link").attrib["href"]
