@@ -55,34 +55,65 @@ def main():
             if not entries:
                 continue
 
-            # ---------- Notificación (solo el vídeo más reciente) ----------
-            latest = entries[0]
-
-            latest_title = latest.find(f"{ATOM}title").text
-            latest_link = latest.find(f"{ATOM}link").attrib["href"]
-            latest_id = get_video_id(latest_link)
-
+            # ---------- Notificaciones ----------
             guardado = state["youtube"].get(channel_name)
 
             # Canal nuevo
             if guardado is None:
-                guardado = [latest_id]
-                state["youtube"][channel_name] = guardado
-                continue
-            # Migración automática del formato antiguo    
-            if isinstance(guardado, str):
-                guardado = [get_video_id(guardado)]
-                state["youtube"][channel_name] = guardado
-            if latest_id not in guardado:
-                print(f"Nuevo vídeo: {channel_name}")
+                historial = []
 
-                if send_notification(
-                    latest_title,
-                    channel_name,
-                    latest_link
-                ):
-                    guardado.insert(0, latest_id)
-                    state["youtube"][channel_name] = guardado[:10]
+                for entry in entries[:10]:
+                    link = entry.find(f"{ATOM}link").attrib["href"]
+                    historial.append(get_video_id(link))
+
+                state["youtube"][channel_name] = historial
+                guardado = historial
+            
+            # Migración automática del formato antiguo
+            elif isinstance(guardado, str):
+                print(f"Migrando historial: {channel_name}")
+                
+                guardado = []
+
+                for entry in entries[:10]:
+                    link = entry.find(f"{ATOM}link").attrib["href"]
+                    guardado.append(get_video_id(link))
+
+                state["youtube"][channel_name] = guardado
+                 
+            
+            
+            # Recorremos los 10 vídeos más recientes
+            for entry in entries[:10]:
+
+                title = entry.find(f"{ATOM}title").text
+                link = entry.find(f"{ATOM}link").attrib["href"]
+                video_id = get_video_id(link)
+
+                if video_id not in guardado:
+                    
+                    print(f"Nuevo vídeo: {channel_name}")
+
+                    if send_notification(
+                        title,
+                        channel_name,
+                        link
+                    ):
+                   
+                        print("Notificación enviada")                    
+                    else:
+                        print("Error enviando notificación")
+            # Actualizar historial de IDs
+            historial = []
+
+            for entry in entries[:10]:
+                link = entry.find(f"{ATOM}link").attrib["href"]
+                historial.append(get_video_id(link))
+
+            state["youtube"][channel_name] = historial
+            guardado = historial
+            
+
             # ---------- RSS (todos los vídeos) ----------
             for entry in entries:
 
