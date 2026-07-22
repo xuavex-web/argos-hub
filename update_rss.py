@@ -91,7 +91,7 @@ def main():
                 link = entry.find(f"{ATOM}link").attrib["href"]
                 video_id = get_video_id(link)
 
-                if False:
+                if video_id not in guardado:
                     
                     print(f"Nuevo vídeo: {channel_name}")
 
