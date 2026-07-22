@@ -20,7 +20,19 @@ def get_channel_name(root):
     if title is not None:
         return title.text
     return "Canal desconocido"
+    
+def get_video_id(link):
+    if "/shorts/" in link:
+        return link.rstrip("/").split("/")[-1]
 
+    from urllib.parse import urlparse, parse_qs
+
+    query = parse_qs(urlparse(link).query)
+
+    if "v" in query:
+        return query["v"][0]
+
+    return link
 
 def main():
 
@@ -48,14 +60,19 @@ def main():
 
             latest_title = latest.find(f"{ATOM}title").text
             latest_link = latest.find(f"{ATOM}link").attrib["href"]
+            latest_id = get_video_id(latest_link)
 
-            ultimo = state["youtube"].get(channel_name)
+            guardado = state["youtube"].get(channel_name)
 
-            if ultimo is None:
-                # Primera ejecución: solo guardar el último vídeo
-                state["youtube"][channel_name] = latest_link
+            # Compatibilidad con el formato antiguo
+            if guardado is None:
+                state["youtube"][channel_name] = [latest_id]
+                continue
+                
+            elif isinstance(guardado, str):
+                guardado = [get_video_id(guardado)]
 
-            elif ultimo != latest_link:
+            if latest_id not in guardado:
                 print(f"Nuevo vídeo: {channel_name}")
 
                 if send_notification(
@@ -63,8 +80,7 @@ def main():
                     channel_name,
                     latest_link
                 ):
-                    state["youtube"][channel_name] = latest_link
-
+                    state["youtube"][channel_name] = [latest_id]
             # ---------- RSS (todos los vídeos) ----------
             for entry in entries:
 
