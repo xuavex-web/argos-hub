@@ -62,7 +62,7 @@ def main():
             if guardado is None:
                 historial = []
 
-                for entry in entries[:10]:
+                for entry in entries[:20]:
                     link = entry.find(f"{ATOM}link").attrib["href"]
                     historial.append(get_video_id(link))
 
