@@ -67,7 +67,7 @@ def main():
             guardado = state["podcasts"].get(channel_name)
 
             # Primera ejecución
-            if guardado is None:
+            if not guardado:
 
                 historial = []
 
