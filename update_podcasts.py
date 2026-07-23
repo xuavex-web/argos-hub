@@ -3,10 +3,11 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 
+from state import load_state, save_state
+from notifier import send_notification
+
 INPUT = "podcast_feeds.txt"
 OUTPUT = "argos_podcasts.xml"
-
-ATOM = "{http://www.w3.org/2005/Atom}"
 
 
 def get_feed_urls():
@@ -14,97 +15,165 @@ def get_feed_urls():
         return [line.strip() for line in f if line.strip()]
 
 
-def get_channel_name(root):
-    title = root.find(f"{ATOM}title")
-    if title is not None:
-        return title.text
-    return "Canal desconocido"
+def get_date(item):
+    try:
+        return parsedate_to_datetime(item["published"])
+    except Exception:
+        try:
+            return datetime.fromisoformat(
+                item["published"].replace("Z", "+00:00")
+            )
+        except Exception:
+            return datetime.min
 
 
 def main():
 
+    state = load_state()
+
+    if "podcasts" not in state:
+        state["podcasts"] = {}
+
     videos = []
 
     for feed_url in get_feed_urls():
+
         try:
-            data = urllib.request.urlopen(feed_url, timeout=10).read()
+            data = urllib.request.urlopen(
+                feed_url,
+                timeout=10
+            ).read()
+
             root = ET.fromstring(data)
 
-            channel_name = get_channel_name(root)
+            channel = root.find("channel")
 
-            # RSS Atom (YouTube)
-            entries = root.findall(f"{ATOM}entry")
+            if channel is None:
+                continue
 
-            if entries:
-                for entry in entries:
-                    title = entry.find(f"{ATOM}title").text
-                    link = entry.find(f"{ATOM}link").attrib["href"]
-                    published = entry.find(f"{ATOM}published").text
+            channel_name = channel.findtext(
+                "title",
+                "Podcast desconocido"
+            )
 
-                    videos.append({
-                        "title": title,
-                        "link": link,
-                        "published": published,
-                        "channel": channel_name
-                    })
+            items = channel.findall("item")
 
-            # RSS 2.0 (iVoox y podcasts)
-            else:
-                channel = root.find("channel")
+            print(
+                channel_name,
+                "episodios encontrados:",
+                len(items)
+            )
 
-                if channel is not None:
-                    channel_name = channel.findtext(
-                        "title",
-                        "Podcast desconocido"
+            guardado = state["podcasts"].get(channel_name)
+
+            # Primera ejecución
+            if guardado is None:
+
+                historial = []
+
+                for item in items[:20]:
+                    link = item.findtext("link", "")
+
+                    if not link:
+                        link = item.findtext("guid", "")
+
+                    historial.append(link)
+                      
+                
+                state["podcasts"][channel_name] = historial
+                guardado = historial
+
+            # Migración del formato antiguo
+            elif isinstance(guardado, str):
+
+                historial = []
+
+                for item in items[:20]:
+                    link = item.findtext("link", "")
+
+                    if not link:
+                        link = item.findtext("guid", "")
+
+                    historial.append(link)
+                
+                     
+                   
+                state["podcasts"][channel_name] = historial
+                guardado = historial
+
+            # Buscar episodios nuevos
+            for item in items[:10]:
+
+                title = item.findtext(
+                    "title",
+                    "Sin título"
+                )
+
+                link = item.findtext("link", "")
+
+                if not link:
+                    link = item.findtext("guid", "")
+                    
+                
+                if link not in guardado:
+
+                    print(
+                        f"Nuevo episodio: {channel_name}"
                     )
 
-                    for item in channel.findall("item"):
-                        title = item.findtext(
-                            "title",
-                            "Sin título"
-                        )
+                    if send_notification(
+                        title,
+                        channel_name,
+                        link
+                    ):
 
-                        link = item.findtext(
-                            "link",
-                            ""
-                        )
+                        print("Notificación enviada")
+                        guardado.insert(0, link)
 
-                        published = item.findtext(
-                            "pubDate",
-                            ""
-                        )
+                    else:
+                        print("Error enviando notificación")
+                        
+                       
+            state["podcasts"][channel_name] = guardado[:20]
 
-                        videos.append({
-                            "title": title,
-                            "link": link,
-                            "published": published,
-                            "channel": channel_name
-                        })
+            for item in items:
+
+                videos.append({
+                    "title": item.findtext(
+                        "title",
+                        "Sin título"
+                    ),
+                    "link": item.findtext(
+                        "link",
+                        ""
+                    ),
+                    "published": item.findtext(
+                        "pubDate",
+                        ""
+                    ),
+                    "channel": channel_name
+                })
 
         except Exception as e:
-            print("Error leyendo:", feed_url, e)
-
-
-    def get_date(item):
-        try:
-            return parsedate_to_datetime(item["published"])
-        except:
-            try:
-                return datetime.fromisoformat(
-                    item["published"].replace("Z", "+00:00")
-                )
-            except:
-                return datetime.min
-
-
+            print(
+                "Error leyendo:",
+                feed_url,
+                e
+            )
     videos.sort(
         key=get_date,
         reverse=True
     )
 
+    rss = ET.Element(
+        "rss",
+        {"version": "2.0"}
+    )
 
-    rss = ET.Element("rss", {"version": "2.0"})
-    channel = ET.SubElement(rss, "channel")
+    channel = ET.SubElement(
+        rss,
+        "channel"
+    )
 
     ET.SubElement(
         channel,
@@ -116,10 +185,12 @@ def main():
         "description"
     ).text = "Agregador automático de podcasts"
 
-
     for video in videos[:50]:
 
-        item = ET.SubElement(channel, "item")
+        item = ET.SubElement(
+            channel,
+            "item"
+        )
 
         ET.SubElement(
             item,
@@ -141,6 +212,7 @@ def main():
             "pubDate"
         ).text = video["published"]
 
+    save_state(state)
 
     tree = ET.ElementTree(rss)
 
