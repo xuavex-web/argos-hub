@@ -1,8 +1,9 @@
 name: Update RSS
 
 on:
-  workflow_dispatch:
-
+  schedule:
+    - cron: "*/5 * * * *"
+  
 concurrency:
   group: argos-update
   cancel-in-progress: true
