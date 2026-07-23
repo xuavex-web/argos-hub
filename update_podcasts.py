@@ -211,7 +211,9 @@ def main():
             item,
             "pubDate"
         ).text = video["published"]
-
+        
+    print("PODCASTS EN MEMORIA:", state["podcasts"])
+    
     save_state(state)
 
     tree = ET.ElementTree(rss)
