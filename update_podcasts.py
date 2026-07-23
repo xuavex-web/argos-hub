@@ -10,7 +10,7 @@ INPUT = "podcast_feeds.txt"
 OUTPUT = "argos_podcasts.xml"
 
 
-def get_feed_urls():
+def get_feed_urls(): 
     with open(INPUT, "r", encoding="utf-8") as f:
         return [line.strip() for line in f if line.strip()]
 
