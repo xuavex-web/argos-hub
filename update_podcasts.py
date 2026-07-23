@@ -213,7 +213,7 @@ def main():
         ).text = video["published"]
         
         
-    save_state(state) 
+    save_state(state)
 
     tree = ET.ElementTree(rss)
 
