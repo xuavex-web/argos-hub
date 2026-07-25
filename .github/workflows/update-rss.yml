@@ -28,7 +28,6 @@ jobs:
           NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: |
-          python update_rss.py
           python update_podcasts.py
          
       - name: Commit RSS
