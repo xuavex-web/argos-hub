@@ -33,6 +33,6 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add argos_podcasts.xml
+          git add argos_podcasts.xml last_seen.json
           git commit -m "Update podcasts RSS" || exit 0
           git push
